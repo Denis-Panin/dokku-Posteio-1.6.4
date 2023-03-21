@@ -58,7 +58,7 @@ You can disable features by passing these optional parameters to the start comma
 
 ## SSL Certificate
 
-Before enabling SSL in the administrator's panel:
+Before enabling SSL in the administrator's panel add certificat:
 
 ![posteio_cert](https://user-images.githubusercontent.com/91189823/226668711-308267d2-ef15-4205-a45f-1f25a2ccda46.png)
 
