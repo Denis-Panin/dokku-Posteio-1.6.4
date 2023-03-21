@@ -1,7 +1,7 @@
-[![GitHub release](https://img.shields.io/github/release/d1ceward/dokku-posteio.svg)](https://github.com/d1ceward/dokku-posteio)
+
 [![Poste.io](https://img.shields.io/badge/Poste.io-2.3.9-blue.svg)](https://poste.io/changelog)
 [![Dokku](https://img.shields.io/badge/Dokku-Repo-blue.svg)](https://github.com/dokku/dokku)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/d1ceward/dokku-posteio/graphs/commit-activity)
+
 
 # Poste.io plugin for Dokku (v1.6.4)
 
@@ -19,13 +19,21 @@ you've ever seen - _Docker powered mini-Heroku_.
 
 # Setup
 
-**Note:** We are going to use the domain `mail.example.com` for demonstration
-purposes. Make sure to replace it to your domain name.
 
 ## Download plugin
 Log onto your Dokku Host to download and install plugin:
 ```bash
-dokku plugin:install https://github.com/d1ceward/dokku-posteio.git
+dokku plugin:install https://github.com/Denis-Panin/posteio
+```
+## PWD posteio in server
+```bash
+/var/lib/dokku/plugins/available/posteio
+/var/lib/dokku/plugins/enabled/posteio
+```
+
+## Help
+```bash
+dokku posteio:help
 ```
 
 ## Domain name
@@ -50,20 +58,7 @@ You can disable features by passing these optional parameters to the start comma
 
 ## SSL Certificate
 
-You will need to access Poste.io dashboard certificate page by going to:
-```
-System Settings > TLS Certificate
-```
-Or directly by accessing this url:
-```
-http://mail.example.com/admin/settings/#certificate
-```
-
-Now click on issue new certificate or choose existing one, after this tell plugin you enabled SSL by:
+Enabled SSL:
 ```bash
 dokku posteio:toggle-ssl
 ```
-
-## Wrapping up
-
-Your Poste.io instance should now be available and secure on [https://mail.example.com](https://mail.example.com).
