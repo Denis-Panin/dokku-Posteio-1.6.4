@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/config"
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "${PLUGIN_CORE_AVAILABLE_PATH}/common/functions"
+source "${PLUGIN_CORE_AVAILABLE_PATH}/nginx-vhosts/functions"
+source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/functions"
+
+posteio_start_func() {
+  if [[ -f "${POSTEIO_ROOT}/DOMAIN" ]]; then
+    local CONTAINER_ID
+    local DOMAIN_NAME="$(< "${POSTEIO_ROOT}/DOMAIN")"
+
+    for i in "${@}"; do
+      case ${i} in
+        --disable-clamav) local CLAMAV=("-e DISABLE_CLAMAV=TRUE") ;;
+        --disable-rspamd) local RSPAMD=("-e DISABLE_RSPAMD=TRUE") ;;
+        --disable-roundcube) local ROUNDCUBE=("-e DISABLE_ROUNDCUBE=TRUE") ;;
+      esac
+    done
+
+    dokku_log_info1 "Starting container"
+    CONTAINER_ID=$(docker run -d --name="dokku.posteio" --restart=unless-stopped \
+      -p 25:25 -p 110:110 -p 143:143 -p 465:465 -p 587:587 -p 993:993 -p 995:995 \
+      -e HTTPS=OFF ${CLAMAV} ${RSPAMD} ${ROUNDCUBE} \
+      -v /etc/localtime:/etc/localtime:ro -v "${POSTEIO_ROOT}/data:/data" \
+      -h "${DOMAIN_NAME}" "${POSTEIO_IMAGE}:${POSTEIO_IMAGE_VERSION}")
+
+    dokku_log_info1 "Storing container ID"
+    echo "${CONTAINER_ID}" > "${POSTEIO_ROOT}/CONTAINER"
+
+    nginx_build_config
+  else
+    dokku_log_warn "set domain name first with dokku posteio:set-domain <domain>"
+  fi
+
+  restart_nginx
+}
+
+posteio_start() {
+  declare desc="start posteio container"
+  declare args="[--disable-clamav|--disable-rspamd|--disable-roundcube]"
+
+  if [[ ! -f "${POSTEIO_ROOT}/CONTAINER" ]]; then
+    if (docker inspect dokku.posteio &> /dev/null); then
+      docker rm -f dokku.posteio &>/dev/null || true
+    fi
+    posteio_start_func "${@}"
+  else
+    if (! is_container_status "$(< "${POSTEIO_ROOT}/CONTAINER")" "Running"); then
+      docker rm -f dokku.posteio &>/dev/null || true
+      posteio_start_func "${@}"
+    else
+       dokku_log_warn "posteio container is already started"
+    fi
+  fi
+}
+
+posteio_start "${@}"
